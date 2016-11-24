@@ -2,7 +2,7 @@ import os
 from setuptools import setup
 from setuptools import find_packages
 
-README = open(os.path.join(os.path.dirname(__file__), 'readme.rst')).read()
+README = open(os.path.join(os.path.dirname(__file__), 'readme.md')).read()
 REQUIREMENTS = [line.strip() for line in
                 open("requirements.txt").readlines()]
 

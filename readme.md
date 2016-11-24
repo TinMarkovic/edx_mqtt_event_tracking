@@ -17,11 +17,10 @@ After that, depending whether you want to track LMS or Studio, it is required to
 
 ```
 lms.auth.json
-Cms.auth.json
+cms.auth.json
 # ALTERNATIVELY
 edx-platform/cms/envs/common.py
 edx-platform/lms/envs/common.py
-
 ```
 
 Adding or modifying the following:
@@ -33,7 +32,6 @@ TRACKING_BACKENDS = {
         'OPTIONS': {
             'host': '10.0.2.2',
             'port': '1883'
-        }
     }
 }
 ```
