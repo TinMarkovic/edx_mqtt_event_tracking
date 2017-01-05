@@ -28,6 +28,8 @@ class MQTTBackend(BaseBackend):
         self.mqclient = mqtt.Client()
 
     def send(self, event):
+
+
         event_topic = "test"
         keep_alive = 60
         self.mqclient.connect(self.mqhost, self.mqport, keep_alive)
@@ -38,7 +40,7 @@ class MQTTBackend(BaseBackend):
             # WIP: Will be better handled with different types/topics when we set them down
             event_str = '{"event_type": "error",  "exception": "UnicodeDecodeError"}'
             self.mqclient.publish(event_topic, event_str)
-            raise
+            # raise # for the jev
 
         event_str = event_str[:settings.TRACK_MAX_EVENT]
         self.mqclient.publish(event_topic, event_str)
