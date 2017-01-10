@@ -35,15 +35,22 @@ class CaliperParser(object):
     def __init__(self, event):
         self.event = event
         self.parsed_event = {}
+        self.event_name = (self.event["name"] if "name" in self.event else self.event["event_type"])
 
     def parse(self):
-        for f in self.event:
+        caliper_event_name = edx_to_caliper["events"][self.event_name]
+        for f in event_properties[caliper_event_name]:
             getattr(self, '_parse_%s' % f)()
+        return edx_to_caliper["event_class"][caliper_event_name](**self.parsed_event)
 
     def _parse_actor(self):
         # mock
         self.parsed_event['actor'] = caliper.entities.Person(entity_id="res://" + self.event['host'] +
                                                                        "/username/" + self.event['username'])
+
+    def _parse_action(self):
+        # mock
+        self.parsed_event["action"] = edx_to_caliper["actions"][self.event_name]
 
     def _parse_edApp(self):
         # mock
@@ -72,3 +79,25 @@ class CaliperParser(object):
     def _parse_endedAtTime(self):
         # mock
         self.parsed_event['endedAtTime'] = self.event['time']
+
+
+# TODO: Move away
+event_properties = {
+    "Navigation": ("actor", "event_object", "navigatedFrom", "target", "eventTime"),
+    "Session": ("action", "actor", "event_object", "generated", "target", "eventTime")
+}
+
+edx_to_caliper = {
+    "events": {
+        "/user_api/v1/account/login_session/": "Session",
+        "/logout": "Session"
+    },
+    "event_class": {
+        "Navigation": caliper.events.NavigationEvent,
+        "Session": caliper.events.SessionEvent
+    },
+    "actions": {
+        "/user_api/v1/account/login_session/": caliper.profiles.SessionProfile.Actions['LOGGED_IN'],
+        "/logout": caliper.profiles.SessionProfile.Actions['LOGGED_OUT']
+    }
+}
