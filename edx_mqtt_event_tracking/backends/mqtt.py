@@ -6,6 +6,7 @@ from django.conf import settings
 from track.backends import BaseBackend
 import paho.mqtt.client as mqtt
 from edx_mqtt_event_tracking.utils import DateTimeJSONEncoder
+from urllib import quote
 
 class MQTTBackend(BaseBackend):
     """
@@ -28,17 +29,25 @@ class MQTTBackend(BaseBackend):
         self.mqclient = mqtt.Client()
 
     def send(self, event):
-        event_topic = "test"
         keep_alive = 60
         self.mqclient.connect(self.mqhost, self.mqport, keep_alive)
+
+        try:
+            event_topic = (self.event["name"] if "name" in self.event else self.event["event_type"])
+        except AttributeError:
+            event_str = '{"name": "error",  "exception": "AttributeError", "message": "Event is missing a name"}'
+            self.mqclient.publish("error", event_str)
+            return
+        
+        event_topic = quote(event_topic, "")
 
         try:
             event_str = json.dumps(event, cls=DateTimeJSONEncoder)
         except UnicodeDecodeError:
             # WIP: Will be better handled with different types/topics when we set them down
-            event_str = '{"event_type": "error",  "exception": "UnicodeDecodeError"}'
-            self.mqclient.publish(event_topic, event_str)
-            raise
+            event_str = '{"name": "error",  "exception": "UnicodeDecodeError"}'
+            self.mqclient.publish("error", event_str)
+            return
 
         event_str = event_str[:settings.TRACK_MAX_EVENT]
         self.mqclient.publish(event_topic, event_str)
