@@ -1,2 +1,1 @@
 paho-mqtt==1.2
--e git+https://github.com/IMSGlobal/caliper-python-public.git@996ea02b94c4a48f39c80bd03c624174e5abe383#egg=IMS_caliper_python
