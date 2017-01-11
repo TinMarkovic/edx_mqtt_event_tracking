@@ -30,6 +30,27 @@ class DateTimeJSONEncoder(json.JSONEncoder):
 
         return super(DateTimeJSONEncoder, self).default(obj)
 
+# TODO: Move away
+event_properties = {
+    "Navigation": ("actor", "event_object", "navigatedFrom", "target", "eventTime"),
+    "Session": ("action", "actor", "event_object", "target", "eventTime")
+}
+
+edx_to_caliper = {
+    "events": {
+        "/user_api/v1/account/login_session/": "Session",
+        "/logout": "Session"
+    },
+    "event_class": {
+        "Navigation": caliper.events.NavigationEvent,
+        "Session": caliper.events.SessionEvent
+    },
+    "actions": {
+        "/user_api/v1/account/login_session/": caliper.profiles.SessionProfile.Actions['LOGGED_IN'],
+        "/logout": caliper.profiles.SessionProfile.Actions['LOGGED_OUT']
+    }
+}
+
 
 class CaliperParser(object):
     def __init__(self, event):
@@ -80,24 +101,3 @@ class CaliperParser(object):
         # mock
         self.parsed_event['endedAtTime'] = self.event['time']
 
-
-# TODO: Move away
-event_properties = {
-    "Navigation": ("actor", "event_object", "navigatedFrom", "target", "eventTime"),
-    "Session": ("action", "actor", "event_object", "target", "eventTime")
-}
-
-edx_to_caliper = {
-    "events": {
-        "/user_api/v1/account/login_session/": "Session",
-        "/logout": "Session"
-    },
-    "event_class": {
-        "Navigation": caliper.events.NavigationEvent,
-        "Session": caliper.events.SessionEvent
-    },
-    "actions": {
-        "/user_api/v1/account/login_session/": caliper.profiles.SessionProfile.Actions['LOGGED_IN'],
-        "/logout": caliper.profiles.SessionProfile.Actions['LOGGED_OUT']
-    }
-}
