@@ -34,7 +34,7 @@ class MQTTBackend(BaseBackend):
         self.mqclient.connect(self.mqhost, self.mqport, keep_alive)
 
         try:
-            event_topic = (self.event["name"] if "name" in self.event else self.event["event_type"])
+            event_topic = (event["name"] if "name" in event else event["event_type"])
         except AttributeError:
             event_str = '{"name": "error",  "exception": "AttributeError", "message": "Event is missing a name"}'
             self.mqclient.publish("error", event_str)
