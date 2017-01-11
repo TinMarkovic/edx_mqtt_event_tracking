@@ -44,7 +44,7 @@ class MQTTBackend(BaseBackend):
 
         if event_topic in caliper_whitelist:
             parsed_event = CaliperParser(event)
-            event = parsed_event.parse()
+            event = parsed_event.parse().as_dict()
 
         event_topic = quote(event_topic, "")
 
