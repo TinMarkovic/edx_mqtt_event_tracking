@@ -84,7 +84,7 @@ class CaliperParser(object):
 # TODO: Move away
 event_properties = {
     "Navigation": ("actor", "event_object", "navigatedFrom", "target", "eventTime"),
-    "Session": ("action", "actor", "event_object", "generated", "target", "eventTime")
+    "Session": ("action", "actor", "event_object", "target", "eventTime")
 }
 
 edx_to_caliper = {
