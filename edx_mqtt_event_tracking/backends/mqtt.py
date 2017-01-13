@@ -5,9 +5,10 @@ import json
 from django.conf import settings
 from track.backends import BaseBackend
 import paho.mqtt.client as mqtt
-from edx_mqtt_event_tracking.utils import DateTimeJSONEncoder
-from edx_mqtt_event_tracking.utils import CaliperParser
+from edx_mqtt_event_tracking.utils import DateTimeJSONEncoder, Mapper
 from urllib import quote
+import logging # remove later
+import traceback # remove later
 
 class MQTTBackend(BaseBackend):
     """
@@ -40,11 +41,14 @@ class MQTTBackend(BaseBackend):
             self.mqclient.publish("error", event_str)
             return
 
-        caliper_whitelist = ("/user_api/v1/account/login_session/", "/logout")
-
-        if event_topic in caliper_whitelist:
-            parsed_event = CaliperParser(event)
-            event = parsed_event.parse().as_dict()
+        mapper = Mapper()
+        if event_topic in mapper.edx_to_caliper:
+            try:
+                event = mapper.parse(event)
+            except Exception:
+                event_str = '{"name": "error",  "exception": "Exception", "message": "' + traceback.format_exc() + '"}'
+                self.mqclient.publish("error", event_str)
+                return
 
         event_topic = quote(event_topic, "")
 
