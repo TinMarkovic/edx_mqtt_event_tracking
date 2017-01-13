@@ -41,10 +41,12 @@ class MQTTBackend(BaseBackend):
             self.mqclient.publish("error", event_str)
             return
 
+        event["event"] = json.loads(event["event"])
+
         mapper = Mapper()
         if event_topic in mapper.edx_to_caliper:
             try:
-                event = mapper.parse(event)
+                event = mapper.parse(event).as_dict()
             except Exception:
                 event_str = '{"name": "error",  "exception": "Exception", "message": "' + traceback.format_exc() + '"}'
                 self.mqclient.publish("error", event_str)
