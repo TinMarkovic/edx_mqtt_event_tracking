@@ -36,7 +36,9 @@ class Mapper(object):
     def __init__(self):
         self.edx_to_caliper = {
             "/user_api/v1/account/login_session/": self.session_event_login,
-            "/logout": self.session_event_logout
+            "/logout": self.session_event_logout,
+            "textbook.pdf.search.executed": self.reading_event,
+            "book": self.reading_event
         }
 
     def parse(self, event):
@@ -50,3 +52,28 @@ class Mapper(object):
     def session_event_logout(self, edx_event):
         raise NotImplementedError
         # return caliper_event
+
+    def reading_event(self, edx_event):
+        reading_events = {
+            "textbook.pdf.search.executed": caliper.profiles.ReadingProfile.Actions['SEARCHED'],
+            "book": caliper.profiles.ReadingProfile.Actions['VIEWED']
+        }
+        event_selector = (edx_event["name"] if "name" in edx_event else edx_event["event_type"])
+
+        caliper_args = dict()
+        caliper_args["action"] = reading_events[event_selector]
+        caliper_args["actor"] = caliper.entities.Person(
+            entity_id=("http://" + edx_event['host'] + "/u/" + edx_event['username']), 
+            dateModified=edx_event['time'],
+            name=edx_event['username'])
+        caliper_args["eventTime"] = edx_event['time']
+        caliper_args["event_object"] = caliper.entities.DigitalResource(
+            entity_id=("res://" + edx_event['host'] + "/"), 
+            dateModified=edx_event['time'])
+        caliper_args["target"] = caliper.entities.Frame(
+            entity_id=("res://" + edx_event['host'] + "/"), 
+            keywords=([edx_event['event']['query']] if edx_event['event'].get('query') else []),
+            dateModified=edx_event['time'])
+
+        caliper_event = caliper.events.ReadingEvent(**caliper_args)
+        return caliper_event

@@ -41,7 +41,10 @@ class MQTTBackend(BaseBackend):
             self.mqclient.publish("error", event_str)
             return
 
-        event["event"] = json.loads(event["event"])
+        try:
+            event["event"] = json.loads(event["event"])
+        except TypeError:
+            pass # In case event['event'] is already an object
 
         mapper = Mapper()
         if event_topic in mapper.edx_to_caliper:
