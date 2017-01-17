@@ -32,6 +32,17 @@ TRACKING_BACKENDS = {
         'OPTIONS': {
             'host': '10.0.2.2',
             'port': '1883'
+        }
+    }
+}
+
+EVENT_TRACKING_BACKENDS = {
+    'mqtt': {
+        'ENGINE': 'edx_mqtt_event_tracking.backends.mqtt.MQTTBackend',
+        'OPTIONS': {
+            'host': '10.0.2.2',
+            'port': '1883'
+        }
     }
 }
 ```
