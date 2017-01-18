@@ -70,6 +70,12 @@ class Mapper(object):
             "ready_to_submit": caliper.profiles.AssessmentProfile.Actions["PAUSED"],
             "submitted": caliper.profiles.AssessmentProfile.Actions["SUBMITTED"],
         }
+        if not edx_event["event"]["exam_is_proctored"]:  # timed
+            assessment_description = "Timed Attempt"
+        elif edx_event["event"]["exam_is_practice_exam"]:
+            assessment_description = "Practice Proctored Attempt"
+        else:
+            assessment_description = "Proctored Attempt"
         caliper_args = dict()
         caliper_args["action"] = assessment_actions[edx_event["event"]["attempt_status"]]
         caliper_args["actor"] = caliper.entities.Person(
@@ -78,14 +84,9 @@ class Mapper(object):
         caliper_args["event_object"] = caliper.entities.Assessment(
             entity_id=edx_event["referer"],
             dateCreated=edx_event["event"]["attempt_started_at"],
-            name=edx_event["event"]["exam_name"]
+            name=edx_event["event"]["exam_name"],
+            description=assessment_description
         )
         caliper_args["eventTime"] = edx_event['time']
-        if not edx_event["event"]["exam_is_proctored"]:  # timed
-            pass
-        elif edx_event["event"]["exam_is_practice_exam"]:
-            pass
-        else:
-            pass
         caliper_event = caliper.events.AssessmentEvent(**caliper_args)
         return caliper_event
