@@ -38,7 +38,16 @@ class Mapper(object):
             "/user_api/v1/account/login_session/": self.session_event_login,
             "/logout": self.session_event_logout,
             "textbook.pdf.search.executed": self.reading_event,
-            "book": self.reading_event
+            "textbook.pdf.search.navigatednext": self.reading_event,
+            "edx.course.student_notes.searched": self.reading_event,
+            "book": self.reading_event,
+            "edx.googlecomponent.calendar.displayed": self.reading_event,
+            "edx.googlecomponent.document.displayed": self.reading_event,
+            "oppia.exploration.loaded": self.reading_event,
+            "microsoft.office.mix.loaded": self.reading_event,
+            "microsoft.office.mix.slide.loaded": self.reading_event,
+            "edx.course.student_notes.notes_page_viewed": self.reading_event,
+            "edx.course.student_notes.viewed": self.reading_event
         }
 
     def parse(self, event):
@@ -54,14 +63,23 @@ class Mapper(object):
         # return caliper_event
 
     def reading_event(self, edx_event):
-        reading_events = {
+        reading_actions = {
             "textbook.pdf.search.executed": caliper.profiles.ReadingProfile.Actions['SEARCHED'],
-            "book": caliper.profiles.ReadingProfile.Actions['VIEWED']
+            "textbook.pdf.search.navigatednext": caliper.profiles.ReadingProfile.Actions['SEARCHED'],
+            "edx.course.student_notes.searched": caliper.profiles.ReadingProfile.Actions['SEARCHED'],
+            "book": caliper.profiles.ReadingProfile.Actions['VIEWED'],
+            "edx.googlecomponent.calendar.displayed": caliper.profiles.ReadingProfile.Actions['VIEWED'],
+            "edx.googlecomponent.document.displayed": caliper.profiles.ReadingProfile.Actions['VIEWED'],
+            "oppia.exploration.loaded": caliper.profiles.ReadingProfile.Actions['VIEWED'],
+            "microsoft.office.mix.loaded": caliper.profiles.ReadingProfile.Actions['VIEWED'],
+            "microsoft.office.mix.slide.loaded": caliper.profiles.ReadingProfile.Actions['VIEWED'],
+            "edx.course.student_notes.notes_page_viewed": caliper.profiles.ReadingProfile.Actions['VIEWED'],
+            "edx.course.student_notes.viewed": caliper.profiles.ReadingProfile.Actions['VIEWED']
         }
         event_selector = (edx_event["name"] if "name" in edx_event else edx_event["event_type"])
 
         caliper_args = dict()
-        caliper_args["action"] = reading_events[event_selector]
+        caliper_args["action"] = reading_actions[event_selector]
         caliper_args["actor"] = caliper.entities.Person(
             entity_id=("http://" + edx_event['host'] + "/u/" + edx_event['username']), 
             dateModified=edx_event['time'],
