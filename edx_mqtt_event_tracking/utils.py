@@ -86,10 +86,10 @@ class Mapper(object):
             name=edx_event['username'])
         caliper_args["eventTime"] = edx_event['time']
         caliper_args["event_object"] = caliper.entities.DigitalResource(
-            entity_id=("res://" + edx_event['host'] + "/"), 
+            entity_id=edx_event['referer'], 
             dateModified=edx_event['time'])
         caliper_args["target"] = caliper.entities.Frame(
-            entity_id=("res://" + edx_event['host'] + "/"), 
+            entity_id=edx_event['referer'], 
             keywords=([edx_event['event']['query']] if edx_event['event'].get('query') else []),
             dateModified=edx_event['time'])
 
