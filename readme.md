@@ -51,3 +51,14 @@ You are emitting to the host:port. This was a fitting localhost configuration, y
 
 During development on Vagrant, it's suggested that you use the default gateway, easily found with `netstat -rn`.
 It will redirect to localhost of the parent computer, and the MQ installed there.
+
+Testing
+-------
+
+Run tests with:
+
+```
+python tests/runtests.py
+```
+
+from the root directory of the project. Tests should be automatically ran when ran as a module.
