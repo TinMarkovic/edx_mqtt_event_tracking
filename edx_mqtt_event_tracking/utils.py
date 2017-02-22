@@ -50,3 +50,38 @@ class Mapper(object):
     def session_event_logout(self, edx_event):
         raise NotImplementedError
         # return caliper_event
+
+    def annotation_event(self, edx_event):
+        annotations_actions = {
+            #"edx.bookmark.accessed": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
+            "edx.bookmark.added": caliper.profiles.AnnotationProfile.Actions['BOOKMARKED'],
+            #"edx.bookmark.listed": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
+            #"edx.bookmark.removed": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
+
+            "edx.course.student_notes.added": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
+            "edx.course.student_notes.deleted": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
+            "edx.course.student_notes.edited": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
+            "edx.course.student_notes.notes_page_viewed": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
+            "edx.course.student_notes.searched": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
+            "edx.course.student_notes.used_unit_link": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
+            "edx.course.student_notes.viewed": caliper.profiles.AnnotationProfile.Actions['SEARCHED']
+        }
+        event_selector = (edx_event["name"] if "name" in edx_event else edx_event["event_type"])
+
+        caliper_args = dict()
+        caliper_args["action"] = annotations_actions[event_selector]
+        caliper_args["actor"] = caliper.entities.Person(
+            entity_id=("http://%s/u/%s" % (edx_event['host'], edx_event['username'])), 
+            dateModified=edx_event['time'],
+            name=edx_event['username'])
+        caliper_args["eventTime"] = edx_event['time']
+        caliper_args["event_object"] = caliper.entities.DigitalResource(
+            entity_id=edx_event['referer'], 
+            dateModified=edx_event['time'])
+        caliper_args["target"] = caliper.entities.Annotation(
+            entity_id=edx_event['referer'], 
+            keywords=([edx_event['event']['query']] if edx_event['event'].get('query') else []),
+            dateModified=edx_event['time'])
+
+        caliper_event = caliper.events.AssessmentEvent(**caliper_args)
+        return caliper_event
