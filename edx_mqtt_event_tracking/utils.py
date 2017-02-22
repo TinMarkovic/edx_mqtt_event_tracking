@@ -44,12 +44,53 @@ class Mapper(object):
         return self.edx_to_caliper[event_selector](event)
 
     def session_event_login(self, edx_event):
-        raise NotImplementedError
-        # return caliper_event
+        caliper_args = dict()
+        host = edx_event['host']
+
+        if type(edx_event['event']) == str:
+            edx_event["event"] = json.loads(edx_event["event"])
+
+        email = edx_event['event']['POST']['email'][0]
+
+        caliper_args["action"] = caliper.profiles.SessionProfile.Actions['LOGGED_IN']
+        caliper_args["actor"] = caliper.entities.Person(
+            description="Email: %s" % email,
+            entity_id="res://%s/u/email/%s" % (edx_event['host'], email)
+        )
+        caliper_args["target"] = caliper.entities.DigitalResource(
+            entity_id="res://%s/" % host
+        )
+        caliper_args["generated"] = caliper.entities.Session(
+            entity_id="res://%s/" % host,
+            actor=caliper_args["actor"]
+        )
+        caliper_args["eventTime"] = edx_event['time']
+        caliper_args["event_object"] = caliper.entities.SoftwareApplication(
+            entity_id="res://%s/" % host
+        )
+
+        caliper_event = caliper.events.SessionEvent(**caliper_args)
+        return caliper_event
 
     def session_event_logout(self, edx_event):
-        raise NotImplementedError
-        # return caliper_event
+        caliper_args = dict()
+        host = edx_event['host']
+
+        caliper_args["action"] = caliper.profiles.SessionProfile.Actions["LOGGED_OUT"]
+        caliper_args["actor"] = caliper.entities.Person(
+            entity_id=("http://%s/u/%s" % (edx_event["host"], edx_event["username"]))
+        )
+        caliper_args["target"] = caliper.entities.Session(
+            entity_id="res://%s/" % host,
+            actor=caliper_args["actor"]
+        )
+        caliper_args["eventTime"] = edx_event["time"]
+        caliper_args["event_object"] = caliper.entities.SoftwareApplication(
+            entity_id="res://%s/" % host
+        )
+
+        caliper_event = caliper.events.SessionEvent(**caliper_args)
+        return caliper_event
 
     def annotation_event(self, edx_event):
         annotations_actions = {
