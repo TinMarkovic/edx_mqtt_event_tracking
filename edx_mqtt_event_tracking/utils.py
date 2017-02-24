@@ -36,7 +36,12 @@ class Mapper(object):
     def __init__(self):
         self.edx_to_caliper = {
             "/user_api/v1/account/login_session/": self.session_event_login,
-            "/logout": self.session_event_logout
+            "/logout": self.session_event_logout,
+            "edx.bookmark.added": self.annotation_event,
+            "edx.bookmark.accessed": self.annotation_event,
+            "edx.bookmark.added": self.annotation_event,
+            "edx.bookmark.listed": self.annotation_event,
+            "edx.bookmark.removed": self.annotation_event,
         }
 
     def parse(self, event):
@@ -94,18 +99,11 @@ class Mapper(object):
 
     def annotation_event(self, edx_event):
         annotations_actions = {
-            #"edx.bookmark.accessed": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
             "edx.bookmark.added": caliper.profiles.AnnotationProfile.Actions['BOOKMARKED'],
-            #"edx.bookmark.listed": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
-            #"edx.bookmark.removed": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
-
-            "edx.course.student_notes.added": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
-            "edx.course.student_notes.deleted": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
-            "edx.course.student_notes.edited": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
-            "edx.course.student_notes.notes_page_viewed": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
-            "edx.course.student_notes.searched": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
-            "edx.course.student_notes.used_unit_link": caliper.profiles.AnnotationProfile.Actions['SEARCHED'],
-            "edx.course.student_notes.viewed": caliper.profiles.AnnotationProfile.Actions['SEARCHED']
+            "edx.bookmark.accessed": caliper.profiles.AnnotationProfile.Actions['BOOKMARKED'],
+            "edx.bookmark.added": caliper.profiles.AnnotationProfile.Actions['BOOKMARKED'],
+            "edx.bookmark.listed": caliper.profiles.AnnotationProfile.Actions['BOOKMARKED'],
+            "edx.bookmark.removed": caliper.profiles.AnnotationProfile.Actions['BOOKMARKED']
         }
         event_selector = (edx_event["name"] if "name" in edx_event else edx_event["event_type"])
 
@@ -113,16 +111,14 @@ class Mapper(object):
         caliper_args["action"] = annotations_actions[event_selector]
         caliper_args["actor"] = caliper.entities.Person(
             entity_id=("http://%s/u/%s" % (edx_event['host'], edx_event['username'])), 
-            dateModified=edx_event['time'],
             name=edx_event['username'])
         caliper_args["eventTime"] = edx_event['time']
         caliper_args["event_object"] = caliper.entities.DigitalResource(
-            entity_id=edx_event['referer'], 
-            dateModified=edx_event['time'])
-        caliper_args["target"] = caliper.entities.Annotation(
-            entity_id=edx_event['referer'], 
-            keywords=([edx_event['event']['query']] if edx_event['event'].get('query') else []),
-            dateModified=edx_event['time'])
+            entity_id=unicode(edx_event['referer']))
+        caliper_args["generated"] = caliper.entities.Annotation(
+            entity_id=unicode(edx_event['referer']),
+            description=event_selector,
+            name=edx_event['event']['component_usage_id'])
 
-        caliper_event = caliper.events.AssessmentEvent(**caliper_args)
+        caliper_event = caliper.events.AnnotationEvent(**caliper_args)
         return caliper_event

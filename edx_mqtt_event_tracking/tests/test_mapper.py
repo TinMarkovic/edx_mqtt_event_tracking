@@ -22,3 +22,9 @@ class MapperTestCase(TestCase):
         event = self.mapper.parse(event)
         self.assertIsInstance(event, caliper.events.SessionEvent)
         self.assertEqual(event.action, caliper.profiles.SessionProfile.Actions['LOGGED_OUT'])
+
+    def test_annotation_event(self):
+        event = self.events["edx.bookmark.added"]
+        event = self.mapper.parse(event)
+        self.assertIsInstance(event, caliper.events.AnnotationEvent)
+        self.assertEqual(event.action, caliper.profiles.AnnotationProfile.Actions['BOOKMARKED'])
