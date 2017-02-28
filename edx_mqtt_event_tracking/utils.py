@@ -39,15 +39,7 @@ class Mapper(object):
             "/logout": self.session_event_logout,
             "textbook.pdf.search.executed": self.reading_event,
             "textbook.pdf.search.navigatednext": self.reading_event,
-            "edx.course.student_notes.searched": self.reading_event,
-            "book": self.reading_event,
-            "edx.googlecomponent.calendar.displayed": self.reading_event,
-            "edx.googlecomponent.document.displayed": self.reading_event,
-            "oppia.exploration.loaded": self.reading_event,
-            "microsoft.office.mix.loaded": self.reading_event,
-            "microsoft.office.mix.slide.loaded": self.reading_event,
-            "edx.course.student_notes.notes_page_viewed": self.reading_event,
-            "edx.course.student_notes.viewed": self.reading_event
+            "book": self.reading_event
         }
 
     def parse(self, event):
@@ -55,42 +47,79 @@ class Mapper(object):
         return self.edx_to_caliper[event_selector](event)
 
     def session_event_login(self, edx_event):
-        raise NotImplementedError
-        # return caliper_event
+        caliper_args = dict()
+        host = edx_event['host']
+
+        if type(edx_event['event']) == str:
+            edx_event["event"] = json.loads(edx_event["event"])
+
+        email = edx_event['event']['POST']['email'][0]
+
+        caliper_args["action"] = caliper.profiles.SessionProfile.Actions['LOGGED_IN']
+        caliper_args["actor"] = caliper.entities.Person(
+            description="Email: %s" % email,
+            entity_id="res://%s/u/email/%s" % (edx_event['host'], email)
+        )
+        caliper_args["target"] = caliper.entities.DigitalResource(
+            entity_id="res://%s/" % host
+        )
+        caliper_args["generated"] = caliper.entities.Session(
+            entity_id="res://%s/" % host,
+            actor=caliper_args["actor"]
+        )
+        caliper_args["eventTime"] = edx_event['time']
+        caliper_args["event_object"] = caliper.entities.SoftwareApplication(
+            entity_id="res://%s/" % host
+        )
+
+        caliper_event = caliper.events.SessionEvent(**caliper_args)
+        return caliper_event
 
     def session_event_logout(self, edx_event):
-        raise NotImplementedError
-        # return caliper_event
+        caliper_args = dict()
+        host = edx_event['host']
+
+        caliper_args["action"] = caliper.profiles.SessionProfile.Actions["LOGGED_OUT"]
+        caliper_args["actor"] = caliper.entities.Person(
+            entity_id=("http://%s/u/%s" % (edx_event["host"], edx_event["username"]))
+        )
+        caliper_args["target"] = caliper.entities.Session(
+            entity_id="res://%s/" % host,
+            actor=caliper_args["actor"]
+        )
+        caliper_args["eventTime"] = edx_event["time"]
+        caliper_args["event_object"] = caliper.entities.SoftwareApplication(
+            entity_id="res://%s/" % host
+        )
+
+        caliper_event = caliper.events.SessionEvent(**caliper_args)
+        return caliper_event
 
     def reading_event(self, edx_event):
-        reading_actions = {
+        reading_events = {
             "textbook.pdf.search.executed": caliper.profiles.ReadingProfile.Actions['SEARCHED'],
             "textbook.pdf.search.navigatednext": caliper.profiles.ReadingProfile.Actions['SEARCHED'],
-            "edx.course.student_notes.searched": caliper.profiles.ReadingProfile.Actions['SEARCHED'],
-            "book": caliper.profiles.ReadingProfile.Actions['VIEWED'],
-            "edx.googlecomponent.calendar.displayed": caliper.profiles.ReadingProfile.Actions['VIEWED'],
-            "edx.googlecomponent.document.displayed": caliper.profiles.ReadingProfile.Actions['VIEWED'],
-            "oppia.exploration.loaded": caliper.profiles.ReadingProfile.Actions['VIEWED'],
-            "microsoft.office.mix.loaded": caliper.profiles.ReadingProfile.Actions['VIEWED'],
-            "microsoft.office.mix.slide.loaded": caliper.profiles.ReadingProfile.Actions['VIEWED'],
-            "edx.course.student_notes.notes_page_viewed": caliper.profiles.ReadingProfile.Actions['VIEWED'],
-            "edx.course.student_notes.viewed": caliper.profiles.ReadingProfile.Actions['VIEWED']
+            "book": caliper.profiles.ReadingProfile.Actions['VIEWED']
         }
         event_selector = (edx_event["name"] if "name" in edx_event else edx_event["event_type"])
+        keywords = list()
+        if json.loads(edx_event['event']).get('query'):
+            keywords.append(json.loads(edx_event['event']).get('query'))            
 
         caliper_args = dict()
-        caliper_args["action"] = reading_actions[event_selector]
+        caliper_args["action"] = reading_events[event_selector]
         caliper_args["actor"] = caliper.entities.Person(
             entity_id=("http://" + edx_event['host'] + "/u/" + edx_event['username']), 
             dateModified=edx_event['time'],
             name=edx_event['username'])
         caliper_args["eventTime"] = edx_event['time']
         caliper_args["event_object"] = caliper.entities.DigitalResource(
-            entity_id=edx_event['referer'], 
+            entity_id=("res://" + edx_event['host'] + "/"), 
             dateModified=edx_event['time'])
         caliper_args["target"] = caliper.entities.Frame(
-            entity_id=edx_event['referer'], 
-            keywords=([edx_event['event']['query']] if edx_event['event'].get('query') else []),
+            entity_id=("res://" + edx_event['host'] + "/"), 
+            keywords=keywords,
+            description=event_selector,
             dateModified=edx_event['time'])
 
         caliper_event = caliper.events.ReadingEvent(**caliper_args)
