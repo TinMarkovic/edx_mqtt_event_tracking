@@ -4,6 +4,7 @@ from __future__ import (unicode_literals)
 from datetime import datetime, date
 import json
 import caliper
+import ast
 
 from pytz import UTC
 

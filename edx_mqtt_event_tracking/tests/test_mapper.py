@@ -22,3 +22,9 @@ class MapperTestCase(TestCase):
         event = self.mapper.parse(event)
         self.assertIsInstance(event, caliper.events.SessionEvent)
         self.assertEqual(event.action, caliper.profiles.SessionProfile.Actions['LOGGED_OUT'])
+
+    def test_media_event(self):
+        event = self.events["pause_video"]
+        event = self.mapper.parse(event)
+        self.assertIsInstance(event, caliper.events.MediaEvent)
+        self.assertEqual(event.action, caliper.profiles.MediaProfile.Actions['PAUSED'])
