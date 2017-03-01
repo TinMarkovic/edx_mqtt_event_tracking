@@ -13,20 +13,22 @@ class MQTTBackend(BaseBackend):
     MQTT Backend for event tracking.
     """
 
-    def __init__(self, host, port, **kwargs):
+    def __init__(self, host, port, username, password **kwargs):
         """Event tracker backend that uses MQTT for communication.
 
         :Parameters:
           - `host`: identifier of the MQTT service, which should have
             been configured using the default python mechanisms.
-          - `port`: identifier of the MQTT service, which should have
-            been configured using the default python mechanisms.
+          - `port`: identifier of the MQTT service
+          - `username`: credentials for the MQTT service
+          - `password`: credentials for the MQTT service
 
         """
         super(MQTTBackend, self).__init__(**kwargs)
         self.mqhost = host
         self.mqport = port
         self.mqclient = mqtt.Client()
+        self.mqclient.username_pw_set(username, password=password)
 
     def send(self, event):
         keep_alive = 60
