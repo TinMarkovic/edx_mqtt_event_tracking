@@ -13,7 +13,7 @@ class MQTTBackend(BaseBackend):
     MQTT Backend for event tracking.
     """
 
-    def __init__(self, host, port, username, password **kwargs):
+    def __init__(self, host, port, username, password, **kwargs):
         """Event tracker backend that uses MQTT for communication.
 
         :Parameters:
