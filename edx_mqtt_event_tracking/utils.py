@@ -129,7 +129,7 @@ class Mapper(object):
             entity_id=("res://" + edx_event['host'] + "/"))
         caliper_args["target"] = caliper.entities.MediaLocation(
             entity_id=("res://" + edx_event['host'] + "/"),
-            currentTime=json.loads(edx_event['event']).get('currentTime'))
+            currentTime=json.loads(edx_event.get('event').replace("\'", '"')).get('currentTime'))
 
         caliper_event = caliper.events.MediaEvent(**caliper_args)
         return caliper_event
