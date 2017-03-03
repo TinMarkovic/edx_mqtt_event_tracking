@@ -33,6 +33,7 @@ class MQTTBackend(BaseBackend):
         self.mqport = port
         self.mqclient = mqtt.Client()
         self.mqclient.username_pw_set(username, password=password)
+        self.mapper = Mapper()
 
     def send(self, event):
         keep_alive = 60
