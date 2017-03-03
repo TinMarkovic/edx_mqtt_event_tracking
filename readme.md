@@ -37,6 +37,22 @@ TRACKING_BACKENDS = {
         }
     }
 }
+
+EVENT_TRACKING_BACKENDS = {
+    'tracking_logs': {
+        'ENGINE': 'eventtracking.backends.routing.RoutingBackend',
+        'OPTIONS': {
+            'backends': {
+            	'mqtt': {
+                    'ENGINE': 'edx_mqtt_event_tracking.backends.mqtt.MQTTBackend',
+                    'OPTIONS': {
+                        'host': '10.0.2.2',
+                        'port': '1883',
+                        'username': 'username_here',
+                        'password': 'password_here'
+                    }
+                }
+            ...
 ```
 
 You are emitting to the host:port. This was a fitting localhost configuration, yours might differ.
